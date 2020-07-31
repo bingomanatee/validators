@@ -58,6 +58,7 @@ tap.test(p.name, (suite) => {
       o.same(testObj({}), false);
       o.same(testObj({a: 1, b: 2}), false);
       o.ok(testObj(null));
+      o.ok(testObj());
 
       o.end();
     })
@@ -99,6 +100,43 @@ tap.test(p.name, (suite) => {
       f.ok(testBool(null));
 
       f.end();
+    })
+
+    v.test('non-present function', (n) =>{
+      const val = validators();
+      let err = null;
+      try {
+        const nonTest = val('foo');
+      } catch (e){
+        err = e;
+      }
+
+      const {message} = err;
+      n.same(message,'no validator named foo')
+      n.end();
+    })
+    v.test('non-present function (is)', (n) =>{
+      const val = validators();
+      let err = null;
+      try {
+        const nonTest = val.is('foo');
+        console.log('nonTest: ', nonTest);
+      } catch (e){
+        err = e;
+      }
+
+      const {message} = err;
+      n.same(message,'no validator named foo')
+      n.end();
+    })
+
+    v.test('is', (tIs) => {
+      const val = validators();
+      const isObject = val.is('object');
+
+      console.log('isObject(null)', isObject(null))
+      console.log('isObject({})', isObject({}))
+      tIs.end();
     })
 
     v.end();

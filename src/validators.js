@@ -1,45 +1,46 @@
-
 const A = Symbol('absent')
-const isType = (s) => (v) => typeof v === s ? false: 'must be ' + s;
+const isType = (s) => (v) => typeof v === s ? false : 'must be ' + s;
 const isO = isType('object');
-const isA = (cl, name) => (v) => v instanceof cl ? false: 'must be ' + name;
+const isA = (cl, name) => (v) => v instanceof cl ? false : 'must be ' + name;
 const int = (v) => ((Number.isSafeInteger(v)) ? false : 'must be integer');
 
+const e = (name) => {
+  throw new Error('no validator named ' + name)
+};
 export default () => {
   const tests = new Map();
-  const is = (test, val = A) => val === A ? (v) => is(test, v) : !validators(test)(val);
-
-  const validators = (name, val, override = false) => {
-    if (typeof val == 'function') {
-      if ((tests.has(name) && !override) && (!(tests.get(name) === val))) {
-        throw new Error(`has a ${name}`);
-      } else {
-        tests.set(name, val);
-      }
-      return validators;
+  const is = (test) => {
+    if (!tests.has(test)) {
+      e(test);
     }
+    return (v) => !tests.get(test)(v);
+  };
 
-    if (!tests.has(name)) throw new Error('no validator named ' + name);
+  const validators = (name) => {
+    if (!tests.has(name)) {
+      e(name);
+    }
     return tests.get(name);
   };
 
-
-  validators('string', isType('string'));
-  validators('number', isType('number'));
-  validators('integer', int);
-  validators('int', int);
-  validators('array', (v) => (Array.isArray(v) ? false : 'must be array'));
-  validators('object', (v) => v ? isO(v) : 'must be object' );
-  validators('map', isA(Map, 'Map'));
-  validators('set', isA(Set, 'Set'));
-  validators('boolean', (v) => ((v === true) || (v === false)) ? false : 'must be boolean');
-  validators('date', isA(Date, 'Date'));
-  validators('function', isType('function'));
-  validators('null', (v) => v === null ? false : 'must be null');
-  validators('undefined', isType('undefined'));
-  validators('true', ((v) => !!v ? false: 'must be true'));
-  validators('false', ((v) => !v ? false: 'must be falsy'));
-
   validators.is = is
+  validators.has = (n) => tests.has(n);
+  validators.define = (n, test) => tests.set(n, test);
+
+  validators.define('string', isType('string'));
+  validators.define('number', isType('number'));
+  validators.define('integer', int);
+  validators.define('int', int);
+  validators.define('array', (v) => (Array.isArray(v) ? false : 'must be array'));
+  validators.define('object', (v) => v ? isO(v) : 'must be object');
+  validators.define('map', isA(Map, 'Map'));
+  validators.define('set', isA(Set, 'Set'));
+  validators.define('boolean', (v) => ((v === true) || (v === false)) ? false : 'must be boolean');
+  validators.define('date', isA(Date, 'Date'));
+  validators.define('function', isType('function'));
+  validators.define('null', (v) => v === null ? false : 'must be null');
+  validators.define('undefined', isType('undefined'));
+  validators.define('true', ((v) => !!v ? false : 'must be true'));
+  validators.define('false', ((v) => !v ? false : 'must be falsy'));
   return validators;
 }
